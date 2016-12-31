@@ -12,6 +12,8 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener{
 
+    private float[] mGravedad;
+    private float[] mGeomagnetismo;
     private TextView salida;
 
     @Override
@@ -29,12 +31,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
         //Practica 5.12
-        listaSensores = sensorManager.getSensorList(Sensor.TYPE_ORIENTATION);
+        /*listaSensores = sensorManager.getSensorList(Sensor.TYPE_ORIENTATION);
         if (!listaSensores.isEmpty()) {
             Sensor orientationSensor = listaSensores.get(0);
             sensorManager.registerListener(this, orientationSensor,
                     SensorManager.SENSOR_DELAY_UI);
-        }
+        }*/
         listaSensores =
                 sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
         if (!listaSensores.isEmpty()) {
@@ -72,12 +74,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     }
                     break;
                 case Sensor.TYPE_ACCELEROMETER:
-                    for (int i=0 ; i<3 ; i++) {
+                    mGravedad = event.values;
+                    for (int i=0 ; i<mGravedad.length ; i++) {
                         log("Acelerómetro "+i+": "+event.values[i]);
                     }
                     break;
                 case Sensor.TYPE_MAGNETIC_FIELD:
-                    for (int i=0 ; i<3 ; i++) {
+                    mGeomagnetismo = event.values;
+                    for (int i=0 ; i<mGeomagnetismo.length ; i++) {
                         log("Magnetismo "+i+": "+event.values[i]);
                     }
                     break;
@@ -85,6 +89,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     for (int i=0 ; i<event.values.length ; i++) {
                         log("Temperatura "+i+": "+event.values[i]);
                     }
+            }
+            if (mGravedad != null && mGeomagnetismo != null) {
+                float R[] = new float[9];
+                float I[] = new float[9];
+                boolean exito =
+                        SensorManager
+                                .getRotationMatrix(R, I,
+                                        mGravedad, mGeomagnetismo);
+                if (exito) {
+                    float orientacion[] = new float[3];
+                    SensorManager.getOrientation(R, orientacion);
+                    // ángulos en radianes
+                    log("ORIENTACION Acimut " + orientacion[0]);
+                    log("ORIENTACION Pitch " + orientacion[1]);
+                    log("ORIENTACION Roll " + orientacion[2]);
+                }
             }
         }
 
